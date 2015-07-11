@@ -1,6 +1,6 @@
 ##' Corrects fluorescence for pNA quenching
 ##' 
-##' @description Based on the model $fl_{corrected} = fl_{obs} \times e^{k\times[\text{pNA}]}$
+##' @description Based on the model \deqn{fl_{corrected} = fl_{obs} \times e^{k[{pNA}]}}
 ##' @param x a data frame containing a column called origFl
 ##' @param k an exponential coefficient (e^(kx))
 ##' @return the same data frame with a corrected column called fl

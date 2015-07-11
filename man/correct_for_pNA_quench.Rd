@@ -14,6 +14,6 @@ correct_for_pNA_quench(x, k)
 the same data frame with a corrected column called fl
 }
 \description{
-Based on the model $fl_{corrected} = fl_{obs} \times e^{k\times[\text{pNA}]}$
+Based on the model \deqn{fl_{corrected} = fl_{obs} \times e^{k[{pNA}]}}
 }
 
