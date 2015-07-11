@@ -75,6 +75,6 @@ plot_affinity_corr <- function(x, label_size=2, hjust=0, vjust=0, sz=0.25, inhib
     facet_wrap(~location + AMC.substrate, scales="free", nrow=1) +
     theme(panel.margin=unit(1, "mm"),
           axis.ticks=element_line(size=sz))
-  browser()
+  #browser()
   return(list(p_MW_corr=p_MW_corr, p_DI_corr=p_DI_corr, p_thermo=p_thermo))
 }

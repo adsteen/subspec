@@ -1,9 +1,10 @@
 ##' Master function to replicate all analyses in the manuscript
-##' 
+##' @description Reproduces data analysis from Steen et al (2015) AME paper about peptidase substrate specificity
 ##' @param path Where to save plot files
 ##' @param print_plots Whether to print plots to the default graphics device (usually your screen)
 ##' Note that this may have no effect in command-line R.
 ##' @param save_plots Whether to save plots.
+##' @details Running this as write_paper(print_plots=TRUE, save_plots=FALSE) *should* work and be platform-independant. Beyond that I don't really make any guarantees but I'm happy to help via email. Notably, save_plots=TRUE requires the existence of a subdirectory of the working directory named `plots` and may be platform-dependant (this was built using OSX 10.10.4 and the cairo device). If you wish to take apart my analysis to understand it better or show that it is totally bogus, I recommend copy-pasting the inside of this function from R and running it as a script. 
 ##' @import ggplot2
 ##' @import plyr
 ##' @import reshape2
@@ -17,41 +18,41 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # This function re-creates all data analysis used in Steen, Vazin & Wilhelm (submitted)
   #  "Substrate specificity of aquatic extracellular peptidases"
   
-  # Useful when running from inside the function
-  print_plots=TRUE
-  save_plots=FALSE
-  
+#   # Useful when running from inside the function
+#   print_plots=TRUE
+#   save_plots=FALSE
+#   
   
   # Used in debugging
   path <- ""
   
-  # Load required packages
-  require(ggplot2)
-  require(plyr)
-  require(reshape2)
-  require(lubridate)
-  require(gridExtra)
-  require(grid)
-  
+#   # Load required packages
+#   require(ggplot2)
+#   require(plyr)
+#   require(reshape2)
+#   require(lubridate)
+#   require(gridExtra)
+#   require(grid)
+#   
 
-  source("subspec/R/calc_inhib_slope.R")
-  source("subspec/R/calc_pNA_k.R")
-  source("subspec/R/conceptual_fig.R")
-  source("subspec/R/corr_pNA_conc.R")
-  source("subspec/R/corr_stats.R")
-  source("subspec/R/correct_for_pNA_quench.R")
-  source("subspec/R/find_homologous.R")
-  source("subspec/R/gauss.R")
-  source("subspec/R/make_sat_curves.R")
-  source("subspec/R/plot_affinity_corr.R")
-  source("subspec/R/plot_all_inv_v0.R")
-  source("subspec/R/plot_inv_v0.R")
-  source("subspec/R/plot_KI_norm_vs_Xaa_pNA.R")
-  source("subspec/R/read_inhib_data.R")
-  source("subspec/R/sim_multiple_enz.R")
-  source("subspec/R/slope_and_SE.R")
-  source("subspec/R/p_val_labeller.R")
-  #source("R/write_paper.R")
+#   source("subspec/R/calc_inhib_slope.R")
+#   source("subspec/R/calc_pNA_k.R")
+#   source("subspec/R/conceptual_fig.R")
+#   source("subspec/R/corr_pNA_conc.R")
+#   source("subspec/R/corr_stats.R")
+#   source("subspec/R/correct_for_pNA_quench.R")
+#   source("subspec/R/find_homologous.R")
+#   source("subspec/R/gauss.R")
+#   source("subspec/R/make_sat_curves.R")
+#   source("subspec/R/plot_affinity_corr.R")
+#   source("subspec/R/plot_all_inv_v0.R")
+#   source("subspec/R/plot_inv_v0.R")
+#   source("subspec/R/plot_KI_norm_vs_Xaa_pNA.R")
+#   source("subspec/R/read_inhib_data.R")
+#   source("subspec/R/sim_multiple_enz.R")
+#   source("subspec/R/slope_and_SE.R")
+#   source("subspec/R/p_val_labeller.R")
+#   #source("R/write_paper.R")
   
   
   # Set some constants relevant to plotting (relevant when this was a script)
@@ -107,16 +108,13 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   }
   #########
   # Fig 5: Effect of DMSO on kinetics
+  # NOTE: The analysis for figs 4, 6 and 7 follow this
   ##########
   # Load necessary functions
   source("R/lm_stats.R")
   source("R/get_nls_coefs.R")
-  theme_set(theme_grey())
+  #theme_set(theme_grey())
   
-  
-  ##########
-  # Set up the raw data frame
-  ##########
   # # Read in the raw data
   # DMSO0 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/0DMSO.csv")
   # DMSO1 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/1DMSO.csv")
@@ -126,9 +124,9 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # DMSO4 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/4DMSO.csv")
   # DMSO5 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/5DMSO.csv")
   
-  # Collect the raw data files into a list, and then convert the list to a data frame
-  data_list <- list(DMSO0=DMSO0, DMSO1=DMSO1, DMSO2=DMSO2, DMSO3=DMSO3, DMSO3point4=DMSO3point4, DMSO4=DMSO4, DMSO5=DMSO5)
-  all_DMSO_raw <- ldply(data_list, identity)
+#   # Collect the raw data files into a list, and then convert the list to a data frame
+#   data_list <- list(DMSO0=DMSO0, DMSO1=DMSO1, DMSO2=DMSO2, DMSO3=DMSO3, DMSO3point4=DMSO3point4, DMSO4=DMSO4, DMSO5=DMSO5)
+#   all_DMSO_raw <- ldply(data_list, identity)
   
   all_DMSO_raw <- rename(all_DMSO_raw, c("LAMC.conc" = "LAMC.vol.ul"))
   all_DMSO_raw$LAMC.conc <- all_DMSO_raw$LAMC.vol.ul*8 # Turn volume (in uL) into concentration (in uM)
@@ -203,12 +201,18 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   
   # Analyze whether there is a significant effect of DMSO on Vmax or Km
   if(print_plots) {
+    grid.arrange(p_Km, p_Vmax, nrow=2)
     print("Trend in Vmax:")
     print(Vmax_lm <- lm(Vmax ~ DMSO., data=subset(mm_coefs, DMSO. <= 4)))
     print(summary(Vmax_lm)) # Yes, p=0.03, -1.7 / percent DMSO
     print("Trend in Km:")
     print(Km_lm <- lm(Km ~ DMSO., data=subset(mm_coefs, DMSO. <= 4)))
     print(summary(Km_lm)) # No, p = 0.49
+  }
+  if(save_plots) {
+    tiff("subspec/plots/Fig5.tiff", width=singleColumn, height=4, units="in", res=900, compression="lzw", type="cairo")
+    grid.arrange(p_Km, p_Vmax, nrow=2)
+    dev.off()
   }
   
   
@@ -378,7 +382,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   corr_df_MW$lab <- paste("atop(", corr_df_MW$p.text, ",", corr_df_MW$r.text, ")", sep="")
   
   # Add free energy of oxidation
-  AA_thermo <- read.csv("data/AA_thermo.csv")
+  #AA_thermo <- read.csv("data/AA_thermo.csv")
 
   inhib_data <- merge(inhib_data, AA_thermo)
 
@@ -411,10 +415,10 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
 
   #print(p_MW_corr)
   
-#   corr_df_DI <- ddply(inhib_data, c("location", "AMC.substrate"), function(x) corr_stats(x, "Dauwe.score.2", "log.rel.Ki"))
-#   corr_df_DI$p.text <- p_val_labeller(corr_df_DI$pval)
-#   corr_df_DI$r.text <- paste("r^2==", signif(corr_df_DI$rsq, 2))
-#   corr_df_DI$lab <- paste("atop(", corr_df_DI$p.text, ",", corr_df_DI$r.text, ")", sep="")
+  corr_df_DI <- ddply(inhib_data, c("location", "AMC.substrate"), function(x) corr_stats(x, "Dauwe.score.2", "log.rel.Ki"))
+  corr_df_DI$p.text <- p_val_labeller(corr_df_DI$pval)
+  corr_df_DI$r.text <- paste("r^2==", signif(corr_df_DI$rsq, 2))
+  corr_df_DI$lab <- paste("atop(", corr_df_DI$p.text, ",", corr_df_DI$r.text, ")", sep="")
   
   # Plot Ki/Ki,ref vs DI
   p_DI_corr <- ggplot(inhib_data, aes(x=Dauwe.score.2, y=rel.Ki, label=AA.abbrev)) + 
@@ -453,7 +457,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   #print(p_thermo)
   
   if(print_plots) {
-    grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3)
+    print(grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3))
   }
   if(save_plots) {
     tiff("subspec/plots/Fig7.tiff", height=6, width=doubleColumn, units="in", res=900, compression="lzw", type="cairo")
@@ -484,20 +488,20 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # Compare to amino acid properties
   ########
   
-  # Merge amino acid characteristics into table of relative Ki values
-  #AA_char <- read.csv("AA characteristics.csv")
-  all_rel_Ki$AA <- substr(all_rel_Ki$pNA.subs, start=1, stop=3)
-  inhib_data <- merge(all_rel_Ki, AA_char, by="AA")
-  
-  # Make correlation plot for affinity vs MW and affinity vs DI
-  # This one creates the plots but does not actually save them
-  corr_plots <- plot_affinity_corr(inhib_data, print_plots=TRUE, save_plots=FALSE, vjust=1.3, hjust=1.5, letter_size=letter_size) 
-  print(corr_plots[[1]])
-  if(print_plots) {
-    grid.arrange(corr_plots$p_MW_corr, corr_plots$p_DI_corr, corr_plots$p_thermo, nrow=3)
-  }
+#   # Merge amino acid characteristics into table of relative Ki values
+#   #AA_char <- read.csv("AA characteristics.csv")
+#   all_rel_Ki$AA <- substr(all_rel_Ki$pNA.subs, start=1, stop=3)
+#   inhib_data <- merge(all_rel_Ki, AA_char, by="AA")
+#   
+#   # Make correlation plot for affinity vs MW and affinity vs DI
+#   # This one creates the plots but does not actually save them
+#   corr_plots <- plot_affinity_corr(inhib_data, print_plots=TRUE, save_plots=FALSE, vjust=1.3, hjust=1.5, letter_size=letter_size) 
+#   print(corr_plots[[1]])
+#   if(print_plots) {
+#     grid.arrange(corr_plots$p_MW_corr, corr_plots$p_DI_corr, corr_plots$p_thermo, nrow=3)
+#   }
 
-
+#browser()
   print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$Dauwe.score.2, method="spearman"))
   print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$MW, method="spearman"))
   print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$deltaGr, method="spearman"))
@@ -505,12 +509,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   print(summary(lm(Dauwe.score.2 ~ rel.Ki, data=inhib_data)))
   print(summary(lm(MW ~ rel.Ki, data=inhib_data)))
   print(summary(lm(deltaGr ~ rel.Ki, data=inhib_data)))
-# 
-# 
-# 
-# 
-# 
-#   
+
   # Return the inhibition data frame, in case you want to do stuff with it
   return(inhib_data)
   
