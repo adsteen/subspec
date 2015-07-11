@@ -2,7 +2,9 @@ Package: subspec
 Title: What the package does (one line)
 Version: 0.1
 Authors@R: "First Last <asteen1@utk.edu> [aut, cre]"
-Description: This package reproduces all of the analysis from Steen et al (2015) Aquatic Microbial Ecology
-Depends: R (>= 3.1.2)
+Description: This package reproduces all of the analysis from Steen et al
+    (2015) Aquatic Microbial Ecology
+Depends:
+    R (>= 3.1.2)
 License: MIT
 LazyData: true

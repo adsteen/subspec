@@ -1,6 +1,6 @@
 ##' Gets coefficients and standard errors for an nls object
 ##' @param x an nls object
-##' @value a 1-row data frame. Yes, this is dumb: it should be a vector
+##' @return a 1-row data frame. Yes, this is dumb: it should be a vector
 ##' @export
 
 get_nls_coefs <- function(x) {

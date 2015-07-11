@@ -1,7 +1,7 @@
 ##' Reads in data frames, corrects bad data, and returns a master list of the data
 ##' 
 ##' @param printDataCheck prints plots of the data, to show what bad data points were thrown out.
-##' @value a list containing each data set
+##' @return a list containing each data set
 ##' @export
 ##' 
 
