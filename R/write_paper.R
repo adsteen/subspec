@@ -11,7 +11,7 @@
 ##' @import gridExtra
 ##' @import grid
 ##' @export
-##' @return NA. The point of this function is to create the plots & calculate the statistics (which are printed to the console)
+##' @return A data frame with everthing calculated in Fig 7
 
 write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # This function re-creates all data analysis used in Steen, Vazin & Wilhelm (submitted)
@@ -74,7 +74,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   myDPI <- 900
   singleColumn <- 3.19 #inches
   doubleColumn <- 6.65 
-  #column_and_a_half <- 5.25
+  column_and_a_half <- 5.25
   
   letter_size <- 3 # For Fig 4, where AAs are represented as letters using geom_text
   
@@ -196,75 +196,164 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     ggsave("plots/fig4.tiff", p_all_inv_v0, height=5, width=doubleColumn, units="in", dpi=myDPI, type="cairo")
   }
   
-#   #######
-#   # Example plot of 1/v0 vs [I] (arg at Bogue Sound)
-#   #######
-#   
-#   #p_inv_v0_arg_Bogue <- plot_inv_v0(subset(all_slopes, location=="Bogue Sound" & AMC.substrate=="arg-AMC"))
-#   #p_inv_v0 <- plot_inv_v0(all_slopes, spacing=0.1)
-#   
-#   
-# #   if (print_plots) {
-# #     print(p_inv_v0_arg_Bogue)
-# #   }
-# #   if(save_plots) {
-# #     ggsave(paste(path, "inv_v0_arg_Bogue.png", sep=""), p_inv_v0_arg_Bogue, height=7, width=singleColumn, units="in", dpi=myDPI, type="cairo")
-# #   }
-#   
-#   ##########
-#   # Calculate relative kI for each combination of Yaa-AMC and Xaa-pNA]
-#   ###########
-#   
-#   # Calculate the "inhibition slopes" (i.e., slopes of 1/v0 vs [I])
-#   all_inhib_slopes <- ddply(all_slopes, c("location", "AMC.substrate", "pNA.subs"), calc_inhib_slope)
-#   
-#   
-#   # label the "homologous" substrates
-#   all_inhib_slopes <- find_homologous(all_inhib_slopes)
-#   
-#   # Calculate relative Ki (i.e., Ki / Ki,ref)
-#   all_rel_Ki <- ddply(all_inhib_slopes, c("location", "AMC.substrate"), transform, 
-#                       rel.Ki=inhib.slope[is.homologous==TRUE] / inhib.slope)
-#   all_rel_Ki$rel.Ki.SE <- all_rel_Ki$inhib.slope.SE * all_rel_Ki$rel.Ki / all_rel_Ki$inhib.slope 
-#   
-#   #######
-#   # Determine the quantification limit
-#   #   The theory here is that the slope SE is a reasonable estiamte of the minimum slope one could measure
-#   #   The quantification limit is therefore the mean of the slope[homologous] / slope.SE
-#   #######
-#   quant_limit_data <- ddply(all_rel_Ki, c("location", "AMC.substrate"), transform, quant.limit = inhib.slope[is.homologous==TRUE] / inhib.slope.SE)
-#   quant_limit <- mean(quant_limit_data$quant.limit)
-#   
-#   # Filter out "bad" relKi values: where inhibSlope < 0 or insn't significant (for now, that just means negative)
-#   #all_rel_Ki$rel.Ki[all_rel_Ki$inhib.slope < 0] <- max(all_rel_Ki$rel.Ki) 
-#   all_rel_Ki$rel.Ki[all_rel_Ki$inhib.slope < 0] <- quant_limit # This is arbitrary
-#   print(paste("'Bad' KI values are set to ", max(all_rel_Ki$rel.Ki), sep=""))
-#   
-#   # Set errorbars for Ki plots
-#   all_rel_Ki$low.err <- all_rel_Ki$rel.Ki - all_rel_Ki$rel.Ki.SE
-#   all_rel_Ki$hi.err <- all_rel_Ki$rel.Ki + all_rel_Ki$rel.Ki.SE
-#   all_rel_Ki$low.err[all_rel_Ki$low.err <= 0] <- 0.01
-#   
-#   
-#   #########
-#   # Fig 4: Dotplot of all normalized affinities
-#   #########
-#   
-#   #invisible(plot_KI_norm_vs_Xaa_pNA(all_rel_Ki, vertical=FALSE, print_plot = print_plots, save_plot=save_plots, height=5, width=singleColumn))
-#   p_KI_vs_Xaa_pNA <- plot_KI_norm_vs_Xaa_pNA(all_rel_Ki, vertical=FALSE, print_plot = print_plots, save_plot=save_plots, height=5, width=singleColumn)
-# 
-#   
-#   if (print_plots) {
-#     print(p_KI_vs_Xaa_pNA)
+
+  ##########
+  # Calculate relative kI for each combination of Yaa-AMC and Xaa-pNA]
+  ###########
+  
+  # Calculate the "inhibition slopes" (i.e., slopes of 1/v0 vs [I])
+  all_inhib_slopes <- ddply(all_slopes, c("location", "AMC.substrate", "pNA.subs"), calc_inhib_slope)
+  
+  
+  # label the "homologous" substrates
+  all_inhib_slopes <- find_homologous(all_inhib_slopes)
+  
+  # Calculate relative Ki (i.e., Ki / Ki,ref)
+  all_rel_Ki <- ddply(all_inhib_slopes, c("location", "AMC.substrate"), transform, 
+                      rel.Ki=inhib.slope[is.homologous==TRUE] / inhib.slope)
+  all_rel_Ki$rel.Ki.SE <- all_rel_Ki$inhib.slope.SE * all_rel_Ki$rel.Ki / all_rel_Ki$inhib.slope 
+  
+  #######
+  # Determine the quantification limit
+  #   The theory here is that the slope SE is a reasonable estiamte of the minimum slope one could measure
+  #   The quantification limit is therefore the mean of the slope[homologous] / slope.SE
+  #######
+  quant_limit_data <- ddply(all_rel_Ki, c("location", "AMC.substrate"), transform, quant.limit = inhib.slope[is.homologous==TRUE] / inhib.slope.SE)
+  quant_limit <- mean(quant_limit_data$quant.limit)
+  
+  # Filter out "bad" relKi values: where inhibSlope < 0 or insn't significant (for now, that just means negative)
+  #all_rel_Ki$rel.Ki[all_rel_Ki$inhib.slope < 0] <- max(all_rel_Ki$rel.Ki) 
+  all_rel_Ki$rel.Ki[all_rel_Ki$inhib.slope < 0] <- quant_limit # This is arbitrary
+  print(paste("'Bad' KI values are set to ", max(all_rel_Ki$rel.Ki), sep=""))
+  
+  # Set errorbars for Ki plots
+  all_rel_Ki$low.err <- all_rel_Ki$rel.Ki - all_rel_Ki$rel.Ki.SE
+  all_rel_Ki$hi.err <- all_rel_Ki$rel.Ki + all_rel_Ki$rel.Ki.SE
+  all_rel_Ki$low.err[all_rel_Ki$low.err <= 0] <- 0.01
+  
+  
+  #########
+  # Fig 5: Dotplot of all normalized affinities
+  #########
+  
+  #invisible(plot_KI_norm_vs_Xaa_pNA(all_rel_Ki, vertical=FALSE, print_plot = print_plots, save_plot=save_plots, height=5, width=singleColumn))
+  p_KI_vs_Xaa_pNA <- plot_KI_norm_vs_Xaa_pNA(all_rel_Ki, vertical=FALSE, print_plot = print_plots, save_plot=save_plots, height=5, width=singleColumn)
+
+  
+  if (print_plots) {
+    print(p_KI_vs_Xaa_pNA)
+  }
+  if (save_plots) {
+    #if (is.na(fn)) {
+      fn <- paste0(path, "Fig4.tiff", sep="")
+    #}
+    ggsave(fn, p_KI_vs_Xaa_pNA, height=5, width=column_and_a_half, units="in", dpi=900, type="cairo", compression="lzw")
+  }
+  
+  ########
+  # Plot Fig 7: affinity correlations
+  ########
+  
+  # Merge amino acid characteristics into table of relative Ki values
+  #AA_char <- read.csv("AA characteristics.csv")
+  all_rel_Ki$AA <- substr(all_rel_Ki$pNA.subs, start=1, stop=3)
+  inhib_data <- merge(all_rel_Ki, AA_char, by="AA")
+  
+#   break_setter = function(n = break_n) {
+#     function(lims) {pretty(x = as.numeric(lims), n = n)}
 #   }
-#   
-#   if (save_plots) {
-#     #if (is.na(fn)) {
-#       fn <- paste(path, "KI_vs_Xaa_pNA.png", sep="")
-#     #}
-#     ggsave(fn, p_KI_vs_Xaa_pNA, height=5, width=column_and_a_half, units="in", dpi=300, type="cairo")
-#   }
-#   
+  
+  # Merge in molecular weights
+  inhib_data$log.rel.Ki <- log10(inhib_data$rel.Ki)
+  corr_df_MW <- ddply(inhib_data, c("location", "AMC.substrate"), function(x) corr_stats(x, "MW", "log.rel.Ki"))
+  corr_df_MW$p.text <- p_val_labeller(corr_df_MW$pval)
+  corr_df_MW$r.text <- paste("r^2==", signif(corr_df_MW$rsq, 2))
+  corr_df_MW$lab <- paste("atop(", corr_df_MW$p.text, ",", corr_df_MW$r.text, ")", sep="")
+  
+  # Add free energy of oxidation
+  AA_thermo <- read.csv("data/AA_thermo.csv")
+
+  inhib_data <- merge(inhib_data, AA_thermo)
+
+
+  # Set plotting dislay variables
+  sz <- 0.25
+  label_size <- 4
+  letter_size <- 3
+  vjust <- 0
+  hjust <- 0
+  
+  
+
+  # Plot Ki/KI,ref vs MW
+  p_MW_corr <- ggplot(inhib_data, aes(x=MW, y=rel.Ki, label=AA.abbrev)) + 
+    geom_smooth(method="lm", colour="black") +
+    geom_text(size=letter_size) + 
+    xlab("molecular weight") +
+    ylab(expression(K[I]/K["I,ref"])) +
+    scale_y_log10(limits=c(10^floor(log10(min(inhib_data$rel.Ki,na.rm=TRUE))), 10^ceiling(log10(max(inhib_data$rel.Ki,na.rm=TRUE))))) +
+    #scale_y_log10(breaks = break_setter(n=break_n)) +
+    scale_x_continuous(limits=c(60, 185), breaks=c(80, 120, 160)) +
+    annotation_logticks(sides="l", 
+                        short=unit(0.05, "cm"), mid=unit(0.1, "cm"), long=unit(0.15, "cm"),
+                        size=sz) +
+    geom_text(data=corr_df_MW, aes(x=Inf, y=Inf, label=lab), parse=T, size=label_size, vjust=vjust, hjust=hjust) +
+    facet_wrap(~location + AMC.substrate, scales="free", nrow=1) +
+    theme(panel.margin=unit(1, "mm"),
+          axis.ticks=element_line(size=sz))
+
+  #print(p_MW_corr)
+  
+#   corr_df_DI <- ddply(inhib_data, c("location", "AMC.substrate"), function(x) corr_stats(x, "Dauwe.score.2", "log.rel.Ki"))
+#   corr_df_DI$p.text <- p_val_labeller(corr_df_DI$pval)
+#   corr_df_DI$r.text <- paste("r^2==", signif(corr_df_DI$rsq, 2))
+#   corr_df_DI$lab <- paste("atop(", corr_df_DI$p.text, ",", corr_df_DI$r.text, ")", sep="")
+  
+  # Plot Ki/Ki,ref vs DI
+  p_DI_corr <- ggplot(inhib_data, aes(x=Dauwe.score.2, y=rel.Ki, label=AA.abbrev)) + 
+    geom_smooth(method="lm", colour="black") + 
+    geom_text(size=letter_size) +
+    xlab("Dauwe DI loading") +
+    ylab(expression(K[I]/K["I,ref"])) +
+    annotation_logticks(sides="l",
+                        short=unit(0.05, "cm"), mid=unit(0.1, "cm"), long=unit(0.15, "cm"),
+                        size=sz) +
+    scale_x_continuous(limits=c(-0.17, 0.22)) +
+    scale_y_log10(limits=c(10^floor(log10(min(inhib_data$rel.Ki,na.rm=TRUE))), 10^ceiling(log10(max(inhib_data$rel.Ki,na.rm=TRUE))))) +
+    #scale_y_log10(breaks=break_setter(n=break_n)) +
+    geom_text(data=corr_df_DI, aes(x=Inf, y=Inf, label=lab), parse=T, size=label_size, vjust=vjust, hjust=hjust) +
+    facet_wrap(~location + AMC.substrate, scales="free", nrow=1) +
+    theme(panel.margin=unit(1, "mm"),
+          axis.ticks=element_line(size=sz))
+  #print(p_DI_corr)
+  
+  # Plot Ki/KI, ref vs delta GoR
+  p_thermo <- ggplot(inhib_data, aes(x=deltaGr, y=rel.Ki, label=AA.abbrev)) + 
+    geom_smooth(method="lm", colour="black") + 
+    geom_text(size=letter_size) +
+    xlab(expression(paste(Delta, G[r], ", kJ ", mol^{-1}))) +
+    ylab(expression(K[I]/K["I,ref"])) +
+    annotation_logticks(sides="l",
+                        short=unit(0.05, "cm"), mid=unit(0.1, "cm"), long=unit(0.15, "cm"),
+                        size=sz) +
+    #scale_x_continuous(limits=c(-0.17, 0.22)) +
+    scale_y_log10(limits=c(10^floor(log10(min(inhib_data$rel.Ki,na.rm=TRUE))), 10^ceiling(log10(max(inhib_data$rel.Ki,na.rm=TRUE))))) +
+    #scale_y_log10(breaks=break_setter(n=break_n)) +
+    geom_text(data=corr_df_DI, aes(x=Inf, y=Inf, label=lab), parse=T, size=label_size, vjust=vjust, hjust=hjust) +
+    facet_wrap(~location + AMC.substrate, scales="free", nrow=1) +
+    theme(panel.margin=unit(1, "mm"),
+          axis.ticks=element_line(size=sz))
+  #print(p_thermo)
+  
+  if(print_plots) {
+    grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3)
+  }
+  if(save_plots) {
+    tiff("subspec/plots/Fig7.tiff", height=6, width=doubleColumn, units="in", res=900, compression="lzw", type="cairo")
+    grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3)
+    dev.off()
+  }
+  
 #   
 #   ### Make a table of the actual relative Ki data for the supplemental
 #   rel_KI_table <- all_rel_Ki[ , c("location", "AMC.substrate", "rel.Ki", "rel.Ki.SE")]
@@ -283,237 +372,39 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
 #   
 #   
 #   
-#   ########
-#   # Compare to amino acid properties
-#   ########
-#   
-#   # Merge amino acid characteristics into table of relative Ki values
-#   AA_char <- read.csv("AA characteristics.csv")
-#   all_rel_Ki$AA <- substr(all_rel_Ki$pNA.subs, start=1, stop=3)
-#   inhib_data <- merge(all_rel_Ki, AA_char, by="AA")
-#   
-#   
-#   # Make correlation plot for affinity vs MW and affinity vs DI
-#   add_corr_plot_list <- plot_affinity_corr(inhib_data, print_plots=TRUE, save_plots=FALSE, vjust=1.3, hjust=1.5, letter_size=letter_size) #Saving the plot from the function does not work for some unknown reason
-#   
-#   #####
-#   # NEed to run delta_G_affinity.R _after_ this entire script
-#   
-#   #####
-#   
-#   ####
-#   # Figure 6:
-#   ####
-#   
-#   # Boolean for AAs that are in my dataset
-#   AA_char$in.my.dataset <- AA_char$AA %in% inhib_data$AA
-#   
-#   MW_DI_corr_data <- corr_stats(AA_char, "MW", "Dauwe.score.2") # Full data set
-#   MW_DI_subs_corr_data <- corr_stats(subset(AA_char, in.my.dataset==TRUE & AA.abbrev != "R"), "MW", "Dauwe.score.2")
-#   
-#   
-#   ###############
-#   #
-#   # Stats: relKi, DI loadings, and MW
-#   #
-#   ###############
-#   
-#   # Test correlation between rel.Ki and hydrophobicity
-#   m_Ki_by_hyd <- lm(rel.Ki ~ hydrophobicity, data=inhib_data)
-#   #plot(m_Ki_by_hyd) #close-enough to being homoskedastic, I think 
-#   print(summary(m_Ki_by_hyd))
-#   
-#   # Test correlation between rel.Ki and hydrophobicity, rank-transformed
-#   print(cor.test(x=inhib_data$hydrophobicity, y=inhib_data$rel.Ki, data=inhib_data, method="spearman"))
-#   
-#   # Test whether polarity affects rel.Ki
-#   m_pol <- lm(rel.Ki ~ polarity, data=inhib_data)
-#   #plot(m_pol) #lm assumptions are more-or-less supported, I think 
-#   summary(m_pol)
-#   
-#   # Test Spearman correlation between relKi and Dauwe score (full dataset)
-#   cor.test(x=inhib_data$Dauwe.score.2, y=inhib_data$rel.Ki, method="spearman")
-#   nrow(inhib_data[!is.na(inhib_data$Dauwe.score.2), ])
-#   
-#   # Test linear correlation between log10(relKi) and Dauwe score
-#   m1 <- lm(log10(rel.Ki) ~ Dauwe.score.2, data=inhib_data)
-#   print(summary(m1))
-#   
-#   # Test Spearman correlation between relKi and MW
-#   cor.test(x=inhib_data$MW, y=inhib_data$rel.Ki, method="spearman")
-#   nrow(inhib_data[!is.na(inhib_data$MW), ])
-#   
-#   # Test linear correlation between log10(relKi) and MW
-#   m2 <- lm(rel.Ki ~ MW, data=inhib_data)
-#   print(summary(m2))
-#   
-#   # Test correlation between DI and MW  -have to use AAchar, since all_rel_Ki has the same datapoints repeated 5x
-#   m3 <- lm(Dauwe.score.2 ~ MW, data=subset(AA_char, in.my.dataset==TRUE))
-#   print(summary(m3)) # p = 0.16
-#   
-#   m3v2 <- lm(Dauwe.score.2 ~ MW, data=AA_char)
-#   print(summary(m3v2))
-#   
-#   #######
-#   # Create figure 4, saturation curves
-#   #######
-# make_sat_curves(print_plot=print_plots, save_plot=save_plots)
-# 
-# 
-# ###########
-# # FROM SCRIPT delta_g_affinity.R
-# ###########
-# AA_thermo <- read.csv("data/AA_thermo.csv")
-# 
-# inhib_data <- merge(inhib_data, AA_thermo)
-# 
-# ddply(inhib_data, c("location", "AMC.substrate"), corr_stats, xvar="rel.Ki", yvar="deltaGr")
-# 
-# summary(lm(rel.Ki~deltaGr, data=inhib_data))
-# summary(lm(log10(rel.Ki)~deltaGr, data=inhib_data))
-# cor.test(x=inhib_data$deltaGr, y=inhib_data$rel.Ki, method="spearman")
-# nrow(inhib_data)
-# 
-# d_ply(inhib_data, c("AMC.substrate", "location"), function(x) print(summary(lm(rel.Ki~deltaGr, data=x))))
-# # They're generally not significant on their own, but the slope is always positive
-# 
-# 
-# cor.test(x=inhib_data$Dauwe.score.2, y=inhib_data$rel.Ki, method="spearman")
-# 
-# # Check correlations of DI and MW, deltaG and MW
-# cor.test(x=inhib_data$MW, y=inhib_data$deltaGr, method="spearman")
-# cor.test(x=inhib_data$MW, y=inhib_data$deltaGr, method="spearman")
-# cor.test(x=inhib_data$deltaGr, y=inhib_data$Dauwe.score.2, method="spearman")
-# p_D_MW <- ggplot(inhib_data, aes(x=Dauwe.score.2, y=MW, label=AA.abbrev)) + 
-#   geom_text() + 
-#   geom_smooth(method="lm", colour="black") +
-#   xlab("Dauwe loading") +
-#   ylab("molecular weight")
-# if(print_plots) {
-#   print(p_D_MW)
-# }
-# 
-# p_MW_deltaG <- ggplot(inhib_data, aes(x=MW, y=deltaGr, label=AA.abbrev)) + 
-#   geom_text() + 
-#   geom_smooth(method="lm", colour="black") +
-#   xlab("Molecular weight") +
-#   ylab(expression(paste(Delta, italic(G[r])))) 
-# 
-# p_deltaG_DI <- ggplot(inhib_data, aes(x=deltaGr, y=Dauwe.score.2, label=AA.abbrev)) + 
-#   geom_text() + 
-#   geom_smooth(method="lm", colour="black") +
-#   xlab(expression(paste(Delta, italic(G[r])))) +
-#   ylab("DI loading")
-# 
-# # #tiff("plots/probably_wont_use_DI_MW_deltaG_correlations.tiff", height=2.5, width=7.25, units="in", res=300, compression="lzw", type="cairo")
-# # tiff("../L_and_O_submission/figures/DI_MW_deltaG_correlations.tiff", height=2.5, width=7.25, units="in", res=300, compression="lzw", type="cairo")
-# # grid.arrange(p_D_MW, p_MW_deltaG, p_deltaG_DI, nrow=1)
-# # dev.off()
-# 
-# 
-# 
-# # p_dG <- ggplot(inhib_data, aes(x=deltaGr, y=rel.Ki)) + 
-# #   geom_text(aes(label=AA.abbrev)) + 
-# #   geom_smooth(method="lm", colour="black") +
-# #   xlab(expression(paste(Delta, italic(G[r])))) +
-# #   ylab(expression(K[I]/K["I,ref"])) 
-# # print(p_dG)
-# # ggsave("../../../Funding/2013/Steen CDEBI Oct 2013/administration/KI_DI.eps", p_dG + theme(text=element_text(size=12)), height=3, width=4, units="in", dpi=300)
-# 
-# # p_MW <- ggplot(inhib_data, aes(x=MW, y=rel.Ki)) + 
-# #   geom_text(aes(label=AA.abbrev)) + 
-# #   geom_smooth(method="lm", colour="black") + 
-# #   xlab("MW") +
-# #   ylab(expression(K[I]/K["I,ref"])) 
-# # print(p_MW)
-# 
-# # p_DI <- ggplot(inhib_data, aes(x=Dauwe.score.2, y=rel.Ki)) + 
-# #   geom_text(aes(label=AA.abbrev)) + 
-# #   geom_smooth(method="lm", colour="black") +
-# #   xlab("DI") +
-# #   ylab(expression(K[I]/K["I,ref"])) 
-# # print(p_DI)
-# 
-# # tiff("../AME_submission/plots/relKI.tiff", height=3, width=6.65, units="in", res=300)
-# # grid.arrange(p_MW, p_DI, p_dG, nrow=1)
-# # dev.off()
-# 
-# # ### Save versions for talk
-# # p_dG_talk <- p_dG + 
-# #   theme(text=element_text(size=20))
-# # ggsave("plots/Ki_v_dG_for_talk.png", height=5, width=6, units="in", dpi=300, type="cairo")
-# # 
-# # p_MW_talk <- p_MW + 
-# #   theme(text=element_text(size=20))
-# # ggsave("plots/Ki_v_MW_for_talk.png", height=5, width=6, units="in", dpi=300, type="cairo")
-# # 
-# # p_DI_talk <- p_DI + 
-# #   theme(text=element_text(size=20))
-# # ggsave("plots/Ki_v_DI_for_talk.png", height=5, width=6, units="in", dpi=300, type="cairo")
-# 
-# ###########
-# # Test significance of correlations between KI and MW, deltaG and DI
-# ###########
-# 
-# summary(lm(rank(rel.Ki)~rank(deltaGr), data=inhib_data))
-# cor.test(x=inhib_data$deltaGr, y=inhib_data$rel.Ki, method="spearman")
-# 
-# ##########
-# # Make hte "affinity plots"
-# ##########
-# affinity_plots <- plot_affinity_corr(inhib_data, n=3)
-# print(affinity_plots$p_thermo)
-# 
-# affinity_plots <- llply(affinity_plots, function(x) x+theme(strip.text=element_text(size=7)))
-# #######
-# # Fig 7
-# #######
-# if(save_plots) {
-#   png("~/Desktop/new_affinity_plot.png", height=6, width=7.25, units="in", res=300, type="cairo")
-#   #png("new_affinity_plot.png", height=6, width=7.25, units="in", res=300, type="cairo")
-#   grid.arrange(affinity_plots[[1]], affinity_plots[[2]], affinity_plots[[3]], nrow=3)
-#   dev.off()
-# }
-# #vp1 <- viewport(height=1/3, width=1, x=1/2, y=5/6)
-# #tiff("plots/new_affinity_plot.tiff", height=6, width=7.25, units="in", res=300, compression="lzw", type="cairo")
-# tiff("new_affinity_plot.tiff", height=6, width=7.25, units="in", res=300, compression="lzw", type="cairo")
-# grid.arrange(affinity_plots[[1]], affinity_plots[[2]], affinity_plots[[3]], nrow=3)
-# dev.off()
-# 
-# id_short <- inhib_data[ , c("AA.abbrev", "rel.Ki", "MW", "deltaGr", "Dauwe.score.2")]
-# idm <- melt(id_short, id.vars=c("AA.abbrev", "rel.Ki"))
-# 
-# affinity_plot <- function(d, xvar, sz=2.5, x_lab) {
-#   ggplot(d, aes_string(x=xvar, y="rel.Ki", label="AA.abbrev")) + 
-#     geom_text(size=sz) + 
-#     geom_smooth(method="lm", se=TRUE, colour="black") +
-#     xlab(x_lab) + 
-#     ylab(expression(K[I]/K["I,ref"])) 
-# }
-# 
-# ap1 <- affinity_plot(inhib_data, xvar="Dauwe.score.2", x_lab="DI loading")
-# ap2 <- affinity_plot(inhib_data, xvar="MW", x_lab="MW")
-# ap3 <- affinity_plot(inhib_data, xvar="deltaGr", x_lab=expression(paste(Delta,italic(G[r]))))
-# 
-# tiff("plots/affinity_plots_grouped.tiff", height=2, width=7.25, units="in", res=300, compression="lzw", type="cairo")
-# grid.arrange(ap1, ap2, ap3, nrow=1)
-# dev.off()
-# 
-# 
-# cor.test(x=inhib_data$rel.Ki, y=inhib_data$Dauwe.score.2, method="spearman")
-# cor.test(x=inhib_data$rel.Ki, y=inhib_data$MW, method="spearman")
-# cor.test(x=inhib_data$rel.Ki, y=inhib_data$deltaGr, method="spearman")
-# 
-# summary(lm(Dauwe.score.2 ~ rel.Ki, data=inhib_data))
-# summary(lm(MW ~ rel.Ki, data=inhib_data))
-# summary(lm(deltaGr ~ rel.Ki, data=inhib_data))
+  ########
+  # Compare to amino acid properties
+  ########
+  
+  # Merge amino acid characteristics into table of relative Ki values
+  #AA_char <- read.csv("AA characteristics.csv")
+  all_rel_Ki$AA <- substr(all_rel_Ki$pNA.subs, start=1, stop=3)
+  inhib_data <- merge(all_rel_Ki, AA_char, by="AA")
+  
+  # Make correlation plot for affinity vs MW and affinity vs DI
+  # This one creates the plots but does not actually save them
+  corr_plots <- plot_affinity_corr(inhib_data, print_plots=TRUE, save_plots=FALSE, vjust=1.3, hjust=1.5, letter_size=letter_size) 
+  print(corr_plots[[1]])
+  if(print_plots) {
+    grid.arrange(corr_plots$p_MW_corr, corr_plots$p_DI_corr, corr_plots$p_thermo, nrow=3)
+  }
+
+
+  print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$Dauwe.score.2, method="spearman"))
+  print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$MW, method="spearman"))
+  print(cor.test(x=inhib_data$rel.Ki, y=inhib_data$deltaGr, method="spearman"))
+
+  print(summary(lm(Dauwe.score.2 ~ rel.Ki, data=inhib_data)))
+  print(summary(lm(MW ~ rel.Ki, data=inhib_data)))
+  print(summary(lm(deltaGr ~ rel.Ki, data=inhib_data)))
 # 
 # 
 # 
 # 
 # 
 #   
-  #return(list(inhib_data=inhib_data))
-  NA
+  # Return the inhibition data frame, in case you want to do stuff with it
+  return(inhib_data)
+  
  
 }

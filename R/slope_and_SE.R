@@ -1,6 +1,7 @@
 ##' Calculate the slope and standard error of fluorescence vs incubation time
 ##' 
 ##' @param x is a data frame containing columns `fl` and `incTime` (both numerics)
+##' @export
 
 
 # slope and standard error calculation
