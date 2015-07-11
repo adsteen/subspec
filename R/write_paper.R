@@ -105,6 +105,113 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   if(save_plots) {
     ggsave("subspec/plots/fig3.tiff", fig3, height=4, width=singleColumn, dpi=900, compression="lzw", type="cairo")
   }
+  #########
+  # Fig 5: Effect of DMSO on kinetics
+  ##########
+  # Load necessary functions
+  source("R/lm_stats.R")
+  source("R/get_nls_coefs.R")
+  theme_set(theme_grey())
+  
+  
+  ##########
+  # Set up the raw data frame
+  ##########
+  # # Read in the raw data
+  # DMSO0 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/0DMSO.csv")
+  # DMSO1 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/1DMSO.csv")
+  # DMSO2 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/2DMSO.csv")
+  # DMSO3 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/3DMSO.csv")
+  # DMSO3point4 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/34DMSO.csv")
+  # DMSO4 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/4DMSO.csv")
+  # DMSO5 <- read.csv("../../DMSO_expt/Hagen_rimmer_DMSO_experiment/5DMSO.csv")
+  
+  # Collect the raw data files into a list, and then convert the list to a data frame
+  data_list <- list(DMSO0=DMSO0, DMSO1=DMSO1, DMSO2=DMSO2, DMSO3=DMSO3, DMSO3point4=DMSO3point4, DMSO4=DMSO4, DMSO5=DMSO5)
+  all_DMSO_raw <- ldply(data_list, identity)
+  
+  all_DMSO_raw <- rename(all_DMSO_raw, c("LAMC.conc" = "LAMC.vol.ul"))
+  all_DMSO_raw$LAMC.conc <- all_DMSO_raw$LAMC.vol.ul*8 # Turn volume (in uL) into concentration (in uM)
+  
+  # The raw data are alread in long format, with well information
+  ## Convert it into 'long' format
+  #dm <- melt(d, id.vars=c("time", "temp"), variable.name="well", value.name="fl") # to get help: help(melt.data.frame)
+  ## Read in the 'key', merge it into the contents of the raw data
+  #key <- read.csv("data/2014_06_02_plate_key.csv")
+  # all_DMSO_raw <- merge(dm, key, by="well")
+  
+  # Calculate elapsed times 
+  exp_date <- "2014-06-02"
+  all_DMSO_raw$Rtime <- ymd_hms(paste(exp_date, all_DMSO_raw$time))
+  all_DMSO_raw$elapsed <- as.numeric(all_DMSO_raw$Rtime - min(all_DMSO_raw$Rtime, na.rm=TRUE))/3600 # convert the time differences in seconds into regular numbers, in hours
+  attr(all_DMSO_raw$elapsed, "units") <- "hours"
+  
+  # Plot the raw data
+  p_raw <- ggplot(all_DMSO_raw, aes(x=elapsed, y=RFU)) +
+    geom_point() +
+    geom_smooth(method="lm", se=FALSE, colour="black") +
+    facet_wrap(~wells, scales="free") +
+    theme(axis.text.x=element_text(angle=-45, hjust=0))
+  #print(p_raw)
+  #ggsave("plots/2014_06_02_DMSO_expt_raw.png", p_raw, height=10, width=12, units="in", dpi=300)
+  # All the data look good
+  
+  #########
+  # Calculate slopes
+  #########
+  slopes <- ddply(all_DMSO_raw, c("wells", "LAMC.conc", "DMSO."), 
+                  function(x) lm_stats(x, xvar="elapsed", yvar="RFU"))
+  
+  # Superimposed saturatin curves
+  p_slopes <- ggplot(slopes, aes(x=LAMC.conc, y=slope, colour=as.factor(DMSO.))) + 
+    geom_pointrange(aes(ymin=slope-slope.se, ymax=slope+slope.se)) +
+    geom_line() +
+    scale_color_brewer(type="qual")
+  theme(axis.text.x=element_text(angle=-45, hjust=0))
+  #print(p_slopes)
+  
+  ####
+  # Make a nonlinear least squares fit for each distinct DMSO concentration
+  mm_mods <- dlply(slopes, c("DMSO."), 
+                   function(x) nls(slope~(Vmax*LAMC.conc)/(Km+LAMC.conc), 
+                                   data=x, 
+                                   start=list(Km=15, Vmax=150)))
+  
+  # Get the nls coefficients for each model
+  mm_coefs <- ldply(mm_mods, get_nls_coefs )
+  
+  # Plot the trends as a function of DMSO concentration
+  p_Km <- ggplot(mm_coefs, aes(x=DMSO., y=Km))+
+    geom_pointrange(aes(ymin=Km-Km.se, ymax=Km+Km.se)) +
+    geom_smooth(data=subset(mm_coefs, DMSO. <=4), aes(x=DMSO., y=Km), method="lm", colour="black") +
+    xlab("DMSO concentration, % vol/vol") +
+    ylab(expression(paste(K[m]))) +
+    expand_limits(y=0) #+
+  #ggtitle("Km as a function of DMSO conc")
+  #print(p_Km)
+  
+  p_Vmax <- ggplot(mm_coefs, aes(x=DMSO., y=Vmax))+
+    geom_pointrange(aes(ymin=Vmax-Vmax.se, ymax=Vmax+Vmax.se)) +
+    geom_smooth(data=subset(mm_coefs, DMSO. <=4), aes(x=DMSO., y=Vmax), method="lm", colour="black") +
+    xlab("DMSO concentration, % vol/vol") +
+    ylab(expression(paste(V[max], "RFU/hour"))) +
+    expand_limits(y=0) #+
+  #ggtitle("V[max] as a function of DMSO conc")
+  #print(p_Vmax)
+  
+  
+  
+  # Analyze whether there is a significant effect of DMSO on Vmax or Km
+  if(print_plots) {
+    print("Trend in Vmax:")
+    print(Vmax_lm <- lm(Vmax ~ DMSO., data=subset(mm_coefs, DMSO. <= 4)))
+    print(summary(Vmax_lm)) # Yes, p=0.03, -1.7 / percent DMSO
+    print("Trend in Km:")
+    print(Km_lm <- lm(Km ~ DMSO., data=subset(mm_coefs, DMSO. <= 4)))
+    print(summary(Km_lm)) # No, p = 0.49
+  }
+  
+  
   
   ##########
   # Data processing for inhibition experiment
@@ -353,6 +460,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3)
     dev.off()
   }
+
   
 #   
 #   ### Make a table of the actual relative Ki data for the supplemental
