@@ -7,4 +7,4 @@ Description: This package reproduces all of the analysis from Steen et al
 Depends:
     R (>= 3.1.2)
 License: MIT
-LazyData: true
+LazyData: TRUE
