@@ -83,8 +83,8 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # NOTE: The analysis for figs 4, 6 and 7 follow this
   ##########
   # Load necessary functions
-  source("R/lm_stats.R")
-  source("R/get_nls_coefs.R")
+#   source("R/lm_stats.R")
+#   source("R/get_nls_coefs.R")
   #theme_set(theme_grey())
   
   # # Read in the raw data
