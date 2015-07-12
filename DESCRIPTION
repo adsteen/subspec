@@ -8,3 +8,5 @@ Depends:
     R (>= 3.1.2)
 License: MIT
 LazyData: true
+Depends:
+    ggplot2
