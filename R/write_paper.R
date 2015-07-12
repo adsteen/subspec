@@ -271,12 +271,12 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     facet_grid(AMC.substrate + location ~ pNA.subs, scales="free") + 
     theme(text=element_text(size=9),
           axis.text.x=element_text(angle=-45, hjust=0)) 
-  
+  #browser()
   if (print_plots) {
     print(p_all_inv_v0)
   }
   if(save_plots) {
-    ggsave("fig4.tiff", p_all_inv_v0, height=5, width=doubleColumn, units="in", dpi=myDPI, type="cairo")
+    ggsave("Fig4.tiff", p_all_inv_v0, height=5, width=doubleColumn, units="in", dpi=myDPI, type="cairo", compression="lzw")
   }
   
 
@@ -328,7 +328,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   }
   if (save_plots) {
     #if (is.na(fn)) {
-      fn <- paste0(path, "Fig4.tiff", sep="")
+      fn <- paste0(path, "Fig6.tiff", sep="")
     #}
     ggsave(fn, p_KI_vs_Xaa_pNA, height=5, width=column_and_a_half, units="in", dpi=900, type="cairo", compression="lzw")
   }
