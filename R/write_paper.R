@@ -1,6 +1,5 @@
 ##' Master function to replicate all analyses in the manuscript
 ##' @description Reproduces data analysis from Steen et al (2015) AME paper about peptidase substrate specificity
-##' @param path Where to save plot files
 ##' @param print_plots Whether to print plots to the default graphics device (usually your screen)
 ##' Note that this may have no effect in command-line R.
 ##' @param save_plots Whether to save plots.
@@ -14,7 +13,7 @@
 ##' @export
 ##' @return A data frame with everthing calculated in Fig 7
 
-write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
+write_paper <- function(print_plots=TRUE, save_plots=FALSE) {
   # This function re-creates all data analysis used in Steen, Vazin & Wilhelm (submitted)
   #  "Substrate specificity of aquatic extracellular peptidases"
   
@@ -24,7 +23,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
 #   
   
   # Used in debugging
-  path <- ""
+  #path <- ""
   
 
   # Set some constants relevant to plotting (relevant when this was a script)
@@ -76,7 +75,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(fig3)
   }
   if(save_plots) {
-    ggsave("fig3.tiff", fig3, height=4, width=singleColumn, dpi=900, compression="lzw", type="cairo")
+    ggsave("Fig3.tiff", fig3, height=4, width=singleColumn, dpi=900, compression="lzw", type="cairo")
   }
   #########
   # Fig 5: Effect of DMSO on kinetics
@@ -328,7 +327,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   }
   if (save_plots) {
     #if (is.na(fn)) {
-      fn <- paste0(path, "Fig6.tiff", sep="")
+      fn <- "Fig6.tiff"
     #}
     ggsave(fn, p_KI_vs_Xaa_pNA, height=5, width=column_and_a_half, units="in", dpi=900, type="cairo", compression="lzw")
   }
