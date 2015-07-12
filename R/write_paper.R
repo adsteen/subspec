@@ -26,35 +26,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
   # Used in debugging
   path <- ""
   
-#   # Load required packages
-#   require(ggplot2)
-#   require(plyr)
-#   require(reshape2)
-#   require(lubridate)
-#   require(gridExtra)
-#   require(grid)
-#   
 
-#   source("subspec/R/calc_inhib_slope.R")
-#   source("subspec/R/calc_pNA_k.R")
-#   source("subspec/R/conceptual_fig.R")
-#   source("subspec/R/corr_pNA_conc.R")
-#   source("subspec/R/corr_stats.R")
-#   source("subspec/R/correct_for_pNA_quench.R")
-#   source("subspec/R/find_homologous.R")
-#   source("subspec/R/gauss.R")
-#   source("subspec/R/make_sat_curves.R")
-#   source("subspec/R/plot_affinity_corr.R")
-#   source("subspec/R/plot_all_inv_v0.R")
-#   source("subspec/R/plot_inv_v0.R")
-#   source("subspec/R/plot_KI_norm_vs_Xaa_pNA.R")
-#   source("subspec/R/read_inhib_data.R")
-#   source("subspec/R/sim_multiple_enz.R")
-#   source("subspec/R/slope_and_SE.R")
-#   source("subspec/R/p_val_labeller.R")
-#   #source("R/write_paper.R")
-  
-  
   # Set some constants relevant to plotting (relevant when this was a script)
   #save_plots <- FALSE
   #print_plots <- TRUE #This is implemented spottily, in a few of the plot functions but not in others
@@ -87,14 +59,14 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(conceptual_plot)
   }
   if (save_plots) {
-    ggsave(paste(path, "plots/fig1.tiff", sep=""), height=2.5, width=singleColumn, unit="in", dpi=myDPI, compression="lzw", type="cairo") # Must be shrunk in illustrator
+    ggsave(paste(path, "fig1.tiff", sep=""), height=2.5, width=singleColumn, unit="in", dpi=myDPI, compression="lzw", type="cairo") # Must be shrunk in illustrator
   }
 
   ############
   # Fig 2: Enzyme kinetic simlation
   ############
   # Returns 2 figs in a list
-  fig2_list <- sim_multiple_enz(print_plot=print_plots, save_plot=TRUE, height=1.5, width=singleColumn, fn="subspec/plots/fig2.tiff")
+  fig2_list <- sim_multiple_enz(print_plot=print_plots, save_plot=TRUE, height=1.5, width=singleColumn, fn="fig2.tiff")
   
   ##########
   # Fig 3: Saturation curves 
@@ -104,7 +76,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(fig3)
   }
   if(save_plots) {
-    ggsave("subspec/plots/fig3.tiff", fig3, height=4, width=singleColumn, dpi=900, compression="lzw", type="cairo")
+    ggsave("fig3.tiff", fig3, height=4, width=singleColumn, dpi=900, compression="lzw", type="cairo")
   }
   #########
   # Fig 5: Effect of DMSO on kinetics
@@ -151,7 +123,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     facet_wrap(~wells, scales="free") +
     theme(axis.text.x=element_text(angle=-45, hjust=0))
   #print(p_raw)
-  #ggsave("plots/2014_06_02_DMSO_expt_raw.png", p_raw, height=10, width=12, units="in", dpi=300)
+  #ggsave("2014_06_02_DMSO_expt_raw.png", p_raw, height=10, width=12, units="in", dpi=300)
   # All the data look good
   
   #########
@@ -210,7 +182,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(summary(Km_lm)) # No, p = 0.49
   }
   if(save_plots) {
-    tiff("subspec/plots/Fig5.tiff", width=singleColumn, height=4, units="in", res=900, compression="lzw", type="cairo")
+    tiff("Fig5.tiff", width=singleColumn, height=4, units="in", res=900, compression="lzw", type="cairo")
     grid.arrange(p_Km, p_Vmax, nrow=2)
     dev.off()
   }
@@ -304,7 +276,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(p_all_inv_v0)
   }
   if(save_plots) {
-    ggsave("plots/fig4.tiff", p_all_inv_v0, height=5, width=doubleColumn, units="in", dpi=myDPI, type="cairo")
+    ggsave("fig4.tiff", p_all_inv_v0, height=5, width=doubleColumn, units="in", dpi=myDPI, type="cairo")
   }
   
 
@@ -460,7 +432,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3))
   }
   if(save_plots) {
-    tiff("subspec/plots/Fig7.tiff", height=6, width=doubleColumn, units="in", res=900, compression="lzw", type="cairo")
+    tiff("Fig7.tiff", height=6, width=doubleColumn, units="in", res=900, compression="lzw", type="cairo")
     grid.arrange(p_MW_corr, p_DI_corr, p_thermo, nrow=3)
     dev.off()
   }
