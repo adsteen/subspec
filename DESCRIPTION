@@ -6,6 +6,8 @@ Description: This package reproduces all of the analysis from Steen et al
     (2015) Aquatic Microbial Ecology
 Depends:
     R (>= 3.1.2),
-    ggplot2
+    ggplot2,
+    grid,
+    gridExtra
 License: MIT
 LazyData: true

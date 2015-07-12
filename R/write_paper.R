@@ -59,7 +59,7 @@ write_paper <- function(path="", print_plots=TRUE, save_plots=FALSE) {
     print(conceptual_plot)
   }
   if (save_plots) {
-    ggsave(paste(path, "fig1.tiff", sep=""), height=2.5, width=singleColumn, unit="in", dpi=myDPI, compression="lzw", type="cairo") # Must be shrunk in illustrator
+    ggsave("Fig1.tiff", height=2.5, width=singleColumn, unit="in", dpi=myDPI, compression="lzw", type="cairo") # Must be shrunk in illustrator
   }
 
   ############
